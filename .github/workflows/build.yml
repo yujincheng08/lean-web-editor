@@ -106,7 +106,7 @@ jobs:
 
       - name: build site and deploy
         run: |
-          sh deploy.sh
+          ./deploy.sh
         env:
           GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
           github_repo: ${{ github.repository }}

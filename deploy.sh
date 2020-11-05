@@ -1,7 +1,8 @@
 set -e # fail on error
 
-git config --global user.email "leanprover-community@gmail.com"
+git config --global pull.ff only
 git config --global user.name "leanprover-community-bot"
+git config --global user.email "leanprover-community@gmail.com"
 
 git clone https://github.com/bryangingechen/lean-web-editor-dist.git
 cd lean-web-editor-dist
@@ -42,7 +43,7 @@ cd lean-web-editor-dist
 git add -A
 git diff-index HEAD
 if [ "$github_repo" = "leanprover-community/lean-web-editor" ] && [ "$github_ref" = "refs/heads/master" ]; then
-    git diff-index --quiet HEAD || { git commit --amend --no-edit && git push deploy -f; }
+    git diff-index --quiet HEAD || { git commit --amend --no-edit && git push deploy -f || exit 1; }
 fi
 cd ..
 
@@ -52,7 +53,7 @@ git submodule update --init --remote
 git add -A
 git diff-index HEAD
 if [ "$github_repo" = "leanprover-community/lean-web-editor" ] && [ "$github_ref" = "refs/heads/master" ]; then
-    git diff-index --quiet HEAD || { git commit -m "lean-web-editor-dist: $(date)" && git push deploy; }
+    git diff-index --quiet HEAD || { git commit -m "lean-web-editor-dist: $(date)" && git push deploy || exit 1; }
 fi
 cd ..
 
@@ -66,5 +67,5 @@ rm -f lean_js_*
 git add -A
 git diff-index HEAD
 if [ "$github_repo" = "leanprover-community/lean-web-editor" ] && [ "$github_ref" = "refs/heads/master" ]; then
-    git diff-index --quiet HEAD || { git commit -m "lean-web-editor: $(date)" && git push deploy; }
+    git diff-index --quiet HEAD || { git commit -m "lean-web-editor: $(date)" && git push deploy || exit 1; }
 fi
