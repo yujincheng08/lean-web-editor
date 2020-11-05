@@ -1,0 +1,113 @@
+name: build and deploy site and lib*.zip
+
+on:
+  schedule:
+    - cron: '0 20 * * *' # every day
+  push:
+    branches-ignore:
+      - 'gh-pages'
+  pull_request:
+    branches-ignore:
+      - 'gh-pages'
+
+jobs:
+  build:
+    name: build and deploy site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: install elan
+        run: |
+          set -o pipefail
+          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+      - name: Get Lean version
+        run: |
+          set -o pipefail
+          source elan_setup.sh
+          echo "LATEST_BROWSER_LEAN=$LATEST_BROWSER_LEAN" >> $GITHUB_ENV
+
+      - name: install Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: install leanproject
+        run: |
+          python -m pip install --upgrade pip mathlibtools
+
+      - name: generate libcore.zip
+        run: |
+          elan override set leanprover-community/lean:$LATEST_BROWSER_LEAN
+          ./mk_library.py -c -o dist/libcore.zip | python detect_errors.py
+
+      - name: upload libcore.zip artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: libcore
+          path: ./dist/libcore.zip
+
+      - name: upload libcore_meta.zip artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: libcore_meta
+          path: ./dist/libcore.*.json
+
+      - name: generate library.zip
+        run: |
+          rm -rf .git/
+          cd combined_lib/
+          git init
+          elan override set leanprover-community/lean:$LATEST_BROWSER_LEAN
+          leanproject --no-lean-upgrade up
+          rm -rf _target/deps/mathlib/test
+          rm -rf _target/deps/mathlib/scripts
+          rm -rf _target/deps/mathlib/roadmap
+          cd ..
+          ./mk_library.py -i combined_lib | python detect_errors.py
+
+      - name: upload library.zip artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: library
+          path: ./dist/library.zip
+
+      - name: upload library_meta.zip artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: library_meta
+          path: ./dist/library.*.json
+
+      - name: Checkout lean-fibonacci
+        run: git clone https://github.com/bryangingechen/lean-fibonacci.git
+
+      - name: generate libfib.zip
+        run: |
+          cd lean-fibonacci/
+          elan override set leanprover-community/lean:$LATEST_BROWSER_LEAN
+          leanpkg upgrade # don't get oleans, build for minimized libfib.zip
+          cd ..
+          ./mk_library.py -i lean-fibonacci -o dist/libfib.zip | python detect_errors.py
+
+      - name: upload libfib.zip artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: libfib
+          path: ./dist/libfib.zip
+
+      - name: upload libfib_meta.zip artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: libfib_meta
+          path: ./dist/libfib.*.json
+
+      - name: build site and deploy
+        run: |
+          sh deploy.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
+          github_repo: ${{ github.repository }}
+          github_ref: ${{ github.ref }}
