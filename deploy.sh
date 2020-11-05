@@ -1,5 +1,8 @@
 set -e # fail on error
 
+git config --global user.email "leanprover-community@gmail.com"
+git config --global user.name "leanprover-community-bot"
+
 git clone https://github.com/bryangingechen/lean-web-editor-dist.git
 cd lean-web-editor-dist
 git remote add deploy "https://$GITHUB_TOKEN@github.com/bryangingechen/lean-web-editor-dist.git"
