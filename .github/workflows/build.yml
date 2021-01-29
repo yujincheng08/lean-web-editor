@@ -2,7 +2,7 @@ name: build and deploy site and lib*.zip
 
 on:
   schedule:
-    - cron: '0 20 * * *' # every day
+    - cron: '0 3 * * *' # every day
   push:
     branches-ignore:
       - 'gh-pages'
