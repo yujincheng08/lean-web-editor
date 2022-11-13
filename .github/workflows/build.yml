@@ -28,7 +28,7 @@ jobs:
         run: |
           set -o pipefail
           # source elan_setup.sh
-          export LATEST_BROWSER_LEAN=3.46  # TODO: revert once we solve the 100Mb limit issue
+          export LATEST_BROWSER_LEAN=3.46.0  # TODO: revert once we solve the 100Mb limit issue
           echo "LATEST_BROWSER_LEAN=$LATEST_BROWSER_LEAN" >> $GITHUB_ENV
 
       - name: install Python
