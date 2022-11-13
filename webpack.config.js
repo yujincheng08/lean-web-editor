@@ -50,10 +50,6 @@ module.exports = {
         publicPath: '/',
     },
     plugins: [
-        // used to change hostPrefix in index.tsx to 'https://tqft.net/lean/web-editor/'
-        new webpack.EnvironmentPlugin({
-            'COMMUNITY': false
-        }),
         new HtmlWebpackPlugin({
             template: 'public/index.html'
         }),

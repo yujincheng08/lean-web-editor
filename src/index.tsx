@@ -817,8 +817,6 @@ function App() {
   );
 }
 
-// const hostPrefix = process.env.COMMUNITY ? 'https://cdn.jsdelivr.net/gh/bryangingechen/lean-web-editor-dist/' : './';
-// const hostPrefix = process.env.COMMUNITY ? 'https://tqft.net/lean/web-editor/' : './';
 const hostPrefix = './';
 
 const leanJsOpts: LeanJsOpts = {

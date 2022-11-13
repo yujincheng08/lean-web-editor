@@ -27,7 +27,6 @@ rm -rf build/
 cd ..
 
 # push leanprover-community/lean-web-editor
-COMMUNITY=TRUE NODE_ENV=production ./node_modules/.bin/webpack
 cd lean-web-editor
 git pull
 cp -a ../dist/. .
