@@ -109,10 +109,6 @@ jobs:
       - name: build site and deploy
         run: |
           ./deploy.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
-          github_repo: ${{ github.repository }}
-          github_ref: ${{ github.ref }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
