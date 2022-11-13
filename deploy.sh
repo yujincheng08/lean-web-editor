@@ -62,8 +62,6 @@ COMMUNITY=TRUE NODE_ENV=production ./node_modules/.bin/webpack
 cd lean-web-editor
 git pull
 cp -a ../dist/. .
-rm -f lib*
-rm -f lean_js_*
 git add -A
 git diff-index HEAD
 if [ "$github_repo" = "leanprover-community/lean-web-editor" ] && [ "$github_ref" = "refs/heads/master" ]; then
