@@ -4,17 +4,6 @@ git config --global pull.ff only
 git config --global user.name "leanprover-community-bot"
 git config --global user.email "leanprover-community@gmail.com"
 
-git clone https://github.com/bryangingechen/lean-web-editor-dist.git
-cd lean-web-editor-dist
-git remote add deploy "https://$GITHUB_TOKEN@github.com/bryangingechen/lean-web-editor-dist.git"
-rm -f *.worker.js
-cd ..
-
-git clone https://github.com/bryangingechen/bryangingechen.github.io.git
-cd bryangingechen.github.io
-git remote add deploy "https://$GITHUB_TOKEN@github.com/bryangingechen/bryangingechen.github.io.git"
-cd ..
-
 git clone --branch gh-pages https://github.com/leanprover-community/lean-web-editor.git
 cd lean-web-editor
 git remote add deploy "https://$GITHUB_TOKEN@github.com/leanprover-community/lean-web-editor.git"
@@ -35,26 +24,6 @@ unzip -q leanbrowser.zip
 rm leanbrowser.zip
 mv build/shell/* .
 rm -rf build/
-cd ..
-
-# push bryangingechen/lean-web-editor-dist
-cp -a dist/. lean-web-editor-dist
-cd lean-web-editor-dist
-git add -A
-git diff-index HEAD
-if [ "$github_repo" = "leanprover-community/lean-web-editor" ] && [ "$github_ref" = "refs/heads/master" ]; then
-    git diff-index --quiet HEAD || { git commit --amend --no-edit && git push deploy -f || exit 1; }
-fi
-cd ..
-
-# push bryangingechen.github.io
-cd bryangingechen.github.io
-git submodule update --init --remote
-git add -A
-git diff-index HEAD
-if [ "$github_repo" = "leanprover-community/lean-web-editor" ] && [ "$github_ref" = "refs/heads/master" ]; then
-    git diff-index --quiet HEAD || { git commit -m "lean-web-editor-dist: $(date)" && git push deploy || exit 1; }
-fi
 cd ..
 
 # push leanprover-community/lean-web-editor
