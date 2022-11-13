@@ -819,7 +819,7 @@ function App() {
 
 // const hostPrefix = process.env.COMMUNITY ? 'https://cdn.jsdelivr.net/gh/bryangingechen/lean-web-editor-dist/' : './';
 // const hostPrefix = process.env.COMMUNITY ? 'https://tqft.net/lean/web-editor/' : './';
-const hostPrefix = process.env.COMMUNITY ? 'https://leanprover.github.io/lean-web-editor/' : './';
+const hostPrefix = './';
 
 const leanJsOpts: LeanJsOpts = {
   javascript: hostPrefix + 'lean_js_js.js',
