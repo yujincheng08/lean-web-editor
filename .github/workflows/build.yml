@@ -64,6 +64,7 @@ jobs:
           git init
           elan override set leanprover-community/lean:$LATEST_BROWSER_LEAN
           # leanproject --no-lean-upgrade up  # TODO: restore
+          leanproject get-mathlib-cache
           rm -rf _target/deps/mathlib/test
           rm -rf _target/deps/mathlib/scripts
           rm -rf _target/deps/mathlib/roadmap
