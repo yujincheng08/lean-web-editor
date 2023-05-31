@@ -13,7 +13,7 @@
     "@types/react": "16.8.17",
     "@types/react-dom": "16.8.0",
     "ajv": "^6.10.0",
-    "lean-client-js-browser": "^2.0.1",
+    "lean-client-js-browser": "^3.5.1",
     "monaco-editor": "0.10.1",
     "react": "16.2.0",
     "react-dom": "16.2.1",
