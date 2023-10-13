@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es6",
+        "target": "es2018",
         "outDir": "lib",
         "noImplicitAny": false,
         "alwaysStrict": true,
         "allowJs": true,
-        "lib": [ "es6", "dom" ],
+        "lib": [ "es2018", "dom" ],
         "jsx": "react",
         "sourceMap": false
     },

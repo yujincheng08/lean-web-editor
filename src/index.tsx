@@ -7,6 +7,7 @@ import {
     allMessages, checkInputCompletionChange, checkInputCompletionPosition, currentlyRunning, delayMs,
     registerLeanLanguage, server, tabHandler
 } from './langservice';
+import { watchFile } from 'fs';
 export const SplitPane: any = sp;
 
 function leanColorize(text: string): string {
@@ -204,12 +205,13 @@ class InfoView extends React.Component<InfoViewProps, InfoViewState> {
 }
 
 interface PageHeaderProps {
-    onFStoIS: (value: string) => string;
-    onIStoFS: (value: string) => string;
+    onFStoIS: (value: string, callback: (out: string) => void) => void;
+    onIStoFS: (value: string, callback: (out: string) => void) => void;
     onIPtoFP: () => void;
     onIStoIP: (value: string) => void;
     onFStoFP: (value: string) => void;
     onFPtoIP: () => void;
+    waiting: boolean;
 }
 interface PageHeaderState {
     is: string;
@@ -236,12 +238,12 @@ class PageHeader extends React.Component<PageHeaderProps, PageHeaderState> {
 
                 </textarea>
                 <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-                    <button onClick={() => this.setState({ fs: this.props.onIStoFS(this.state.is) })}>IS-&gt;FS</button>
-                    <button onClick={() => this.setState({ is: this.props.onFStoIS(this.state.fs) })}>FS-&gt;IS</button>
-                    <button onClick={this.props.onIPtoFP}>IP-&gt;FP</button>
-                    <button onClick={this.props.onFPtoIP}>FP-&gt;IP</button>
-                    <button onClick={() => this.props.onIStoIP(this.state.is)}>IS-&gt;IP</button>
-                    <button onClick={() => this.props.onFStoFP(this.state.fs)}>FS-&gt;FP</button>
+                    <button disabled={this.props.waiting} onClick={() => this.props.onIStoFS(this.state.is, (out) => this.setState({ fs: out }))}>IS-&gt;FS</button>
+                    <button disabled={this.props.waiting} onClick={() => this.props.onFStoIS(this.state.fs, (out) => this.setState({ is: out }))}>FS-&gt;IS</button>
+                    <button disabled={this.props.waiting} onClick={this.props.onIPtoFP}>IP-&gt;FP</button>
+                    <button disabled={this.props.waiting} onClick={this.props.onFPtoIP}>FP-&gt;IP</button>
+                    <button disabled={this.props.waiting} onClick={() => this.props.onIStoIP(this.state.is)}>IS-&gt;IP</button>
+                    <button disabled={this.props.waiting} onClick={() => this.props.onFStoFP(this.state.fs)}>FS-&gt;FP</button>
                 </div>
             </div>
         )
@@ -260,6 +262,7 @@ interface LeanEditorState {
     checked: boolean;
     lastFileName: string;
     ip: string;
+    waiting: boolean;
 }
 class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
     model: monaco.editor.IModel;
@@ -273,6 +276,7 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
             checked: true,
             lastFileName: this.props.file,
             ip: 'informal proof',
+            waiting: false,
         };
         this.model = monaco.editor.createModel(this.props.initialValue, 'lean', monaco.Uri.file(this.props.file));
         this.model.updateOptions({ tabSize: 2 });
@@ -321,23 +325,43 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
         this.editor.dispose();
         this.editor = undefined;
     }
-    onFStoIS = (value: string) => {
-        return `informal statement of ${value}`
+
+    apiRequest(endpoint: string, data: string, callback: (out: string) => void) {
+        this.setState({ waiting: true })
+        fetch(`/api/${endpoint}`, {
+            method: 'POST',
+            body: JSON.stringify({ data: data }),
+            headers: {
+                'Accept': 'application/json, text/plain',
+                'Content-Type': 'application/json;charset=UTF-8'
+            }
+        }).then(res => res.json()).then(res => res['out']).then((res) => {
+            callback(res)
+        }).catch((err) => {
+            callback(`-- err: ${err}`)
+        }).finally(() => {
+            this.setState({ waiting: false })
+        })
+    }
+
+
+    onFStoIS = (value: string, callback: (out: string) => void) => {
+        this.apiRequest('FsToIs', value, callback)
     }
     onIPtoFP = () => {
-        this.model.setValue(`-- formal proof of ${this.state.ip}`)
+        this.apiRequest('IpToFp', this.state.ip, (out) => this.model.setValue(out))
     }
     onIStoIP = (value: string) => {
-        this.setState({ ip: `informal proof of ${value}` })
+        this.apiRequest('IsToIp', value, (out) => this.setState({ ip: out }))
     }
     onFStoFP = (value: string) => {
-        this.model.setValue(`-- formal proof of ${value}`)
+        this.apiRequest('FsToFp', value, (out) => this.model.setValue(out))
     }
     onFPtoIP = () => {
-        this.setState({ ip: `informal proof of ${this.model.getValue()}` })
+        this.apiRequest('FpToIp', this.model.getValue(), (out) => this.setState({ ip: out }))
     }
-    onIStoFS = (value: string) => {
-        return `formal statement of ${value}`
+    onIStoFS = (value: string, callback: (out: string) => void) => {
+        this.apiRequest('IsToFs', value, callback)
     }
 
     render() {
@@ -356,7 +380,7 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
         }
         return (<div className='leaneditorContainer'>
             <div className='headerContainer'>
-                <PageHeader onFStoIS={this.onFStoIS} onFPtoIP={this.onFPtoIP} onFStoFP={this.onFStoFP} onIPtoFP={this.onIPtoFP} onIStoFS={this.onIStoFS} onIStoIP={this.onIStoIP} />
+                <PageHeader onFStoIS={this.onFStoIS} onFPtoIP={this.onFPtoIP} onFStoFP={this.onFStoFP} onIPtoFP={this.onIPtoFP} onIStoFS={this.onIStoFS} onIStoIP={this.onIStoIP} waiting={this.state.waiting} />
             </div>
             <div className='editorContainer' ref='root'>
                 <SplitPane split={'vertical'} defaultSize='50%' allowResize={true} onDragFinished={(size) => this.setState({ csize: size })}>
@@ -375,33 +399,6 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
 }
 
 const defaultValue = `-- formal proof`;
-
-interface HashParams {
-    url: string;
-    code: string;
-}
-function parseHash(hash: string): HashParams {
-    hash = hash.slice(1);
-    const hashObj = hash.split('&').map((s) => s.split('='))
-        .reduce((pre, [key, value]) => ({ ...pre, [key]: value }), {}) as any;
-    const url = decodeURIComponent(hashObj.url || '');
-    const code = decodeURIComponent(hashObj.code || defaultValue);
-    return { url, code };
-}
-function paramsToString(params: HashParams): string {
-    let s = '#';
-    if (params.url) {
-        s = '#url=' + encodeURIComponent(params.url)
-            .replace(/\(/g, '%28').replace(/\)/g, '%29');
-    }
-    // nonempty params.code will wipe out params.url
-    if (params.code) {
-        params.url = null;
-        s = '#code=' + encodeURIComponent(params.code)
-            .replace(/\(/g, '%28').replace(/\)/g, '%29');
-    }
-    return s;
-}
 
 function App() {
     const fn = monaco.Uri.file('test.lean').fsPath;
